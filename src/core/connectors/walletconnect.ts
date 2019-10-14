@@ -3,6 +3,8 @@ export interface IWalletConnectConnectorOptions {
   bridge?: string;
   qrcode?: boolean;
   network?: string;
+  rpc?: { [key: number]: string };
+  chainId?: number;
 }
 
 function getChainId(network: string) {
@@ -13,6 +15,7 @@ function getChainId(network: string) {
     goerli: 5,
     kovan: 42
   };
+
   const chainId = infuraChainIds[network];
   if (!chainId) {
     throw new Error(`Invalid or unknown chainId for network=${network}`);
@@ -29,18 +32,27 @@ const ConnectToWalletConnect = (
     let qrcode = true;
     let infuraId = "";
     let chainId = 1;
+    let rpc = null
 
     if (opts) {
       bridge = opts.bridge || bridge;
       qrcode = typeof opts.qrcode !== "undefined" ? opts.qrcode : qrcode;
       infuraId = opts.infuraId || "";
-      chainId = opts.network ? getChainId(opts.network) : 1;
+
+      if (opts.network) {
+        chainId = getChainId(opts.network)
+      } else {
+        chainId = opts.chainId || chainId
+      }
+
+      rpc = opts.rpc || null;
     }
 
     const provider = new WalletConnectProvider({
       bridge,
       qrcode,
       infuraId,
+      rpc,
       chainId
     });
 
